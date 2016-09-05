@@ -21,36 +21,11 @@ VENDOR_DIR=${BP_DIR}/vendor
 APP_PREFIX=/app/.heroku
 mkdir -p $APP_PREFIX
 
-# Cache compilation artifacts between builds
-BP_CACHE_DIR="$CACHE_DIR/heroku-kong-buildpack"
-mkdir -p $BP_CACHE_DIR
-PREFIX_CACHE_DIR=$BP_CACHE_DIR/app_prefix
-
-# Source for Kong
-if [ -f "${ENV_DIR}/KONG_GIT_URL" ]
-then
-  KONG_GIT_URL=`cat ${ENV_DIR}/KONG_GIT_URL`
-else
-  KONG_GIT_URL="https://github.com/mars/kong.git"
-fi
-# commit or tag to checkout
-if [ -f "${ENV_DIR}/KONG_GIT_COMMITISH" ]
-then
-  KONG_GIT_COMMITISH=`cat ${ENV_DIR}/KONG_GIT_COMMITISH`
-else
-  KONG_GIT_COMMITISH="0.7.0-external-supervisor.1"
-fi
-
-KONG_SOURCE_DIR="${BP_CACHE_DIR}/kong-source"
-
 # Set dependency versions.
 # These correspond to the archives in `vendor/`.
 # If upgrading any those archives, then update the corresponding version here.
 LUAJIT_VERSION=2.1.0-beta1
 LUAROCKS_VERSION=2.3.0
-SERF_VERSION=0.7.0
-OPENSSL_VERSION=1.0.2f
-OPENRESTY_VERSION=1.9.7.2
 
 function error() {
   echo " !     $*" >&2
@@ -181,16 +156,6 @@ then
   ln -sf luajit-${LUAJIT_VERSION} ${APP_PREFIX}/bin/luajit
   cd ..
 
-  topic "Building OpenResty"
-  tar -xf openssl-${OPENSSL_VERSION}.tar.gz
-  tar -xf ngx_openresty-${OPENRESTY_VERSION}.tar.gz
-  cd ngx_openresty-${OPENRESTY_VERSION}
-  ./configure --prefix=$APP_PREFIX --with-pcre-jit --with-ipv6 --with-http_realip_module --with-http_ssl_module --with-http_stub_status_module --with-openssl=${VENDOR_CACHE_DIR}/openssl-${OPENSSL_VERSION} --with-luajit=${APP_PREFIX}
-  make
-  make install
-  cd ..
-
-
   topic "Building LuaRocks"
   tar -xf luarocks-${LUAROCKS_VERSION}.tar.gz
   cd luarocks-${LUAROCKS_VERSION}
@@ -199,56 +164,17 @@ then
   make install
   cd ..  
 
-  topic "Installing Serf"
-  unzip serf_${SERF_VERSION}_linux_amd64.zip
-  mv serf $APP_PREFIX/bin/
-
-  topic "Caching build"
-  mkdir -p $PREFIX_CACHE_DIR
-  cp -Rf $APP_PREFIX/* $PREFIX_CACHE_DIR/
+#  topic "Caching build"
+#  mkdir -p $PREFIX_CACHE_DIR
+#  cp -Rf $APP_PREFIX/* $PREFIX_CACHE_DIR/
 
 else
   error "Error detecting cached build: diff exited ${DIFF_STATUS}"
 fi
 
-topic "Building Kong from ${KONG_GIT_URL}#${KONG_GIT_COMMITISH}"
-# Ensure we don't have Kong from a previous build
-luarocks remove kong || true
-if [ -d "$KONG_SOURCE_DIR" ]
-then
-  cd $KONG_SOURCE_DIR
-  git fetch
-  git fetch --tags
-  git reset --hard $(git rev-list -n 1 $KONG_GIT_COMMITISH)
-else
-  git clone $KONG_GIT_URL $KONG_SOURCE_DIR
-  cd $KONG_SOURCE_DIR
-  git checkout $KONG_GIT_COMMITISH
-fi
-# Install Kong itself from the cloned git repo
-luarocks make ./kong-*.rockspec
-# Install Kong's dependencies via LuaRocks
-# (`--local` is required for this to do anything)
-luarocks install --only-deps --local ./kong-*.rockspec
-
-topic "Installing Lua rocks for kong-12f"
-luarocks install etlua 1.2.0
-luarocks install moses 1.4.0
-luarocks install serpent
-
 topic "Installing Lua rocks specified in .luarocks"
 cd ${BUILD_DIR}
 ${BP_DIR}/bin/install-luarocks
-
-topic "Enabling Kong 12-factor config"
-cd ${BP_DIR}
-mkdir -p $BUILD_DIR/.profile.d
-mv .profile.d/* $BUILD_DIR/.profile.d
-mkdir -p $BUILD_DIR/config
-mv config/* $BUILD_DIR/config
-
-topic "Creating NginX working directory"
-mkdir -p $BUILD_DIR/nginx-working
 
 topic "Making build artifacts available to app"
 mv $APP_PREFIX $BUILD_DIR/.heroku
