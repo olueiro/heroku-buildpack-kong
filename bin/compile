@@ -112,6 +112,8 @@ export | grep -E -e ' (PATH|LD_LIBRARY_PATH|LIBRARY_PATH|INCLUDE_PATH|CPATH|CPPP
   # and cache the new source code
   #mv ${VENDOR_DIR} ${VENDOR_CACHE_DIR}
   #cd ${VENDOR_CACHE_DIR}
+  
+  cd ${VENDOR_DIR}
 
   topic "Building LuaJIT"
   tar -xf LuaJIT-${LUAJIT_VERSION}.tar.gz
