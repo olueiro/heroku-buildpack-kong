@@ -106,47 +106,12 @@ export | grep -E -e ' (PATH|LD_LIBRARY_PATH|LIBRARY_PATH|INCLUDE_PATH|CPATH|CPPP
 
 # Build from source to have dyno-compatible path prefix
 
-# Cache the build
-VENDOR_CACHE_DIR=${BP_CACHE_DIR}/vendor
-mkdir -p ${VENDOR_CACHE_DIR}
-
-# Detect changes in the vendor/ sources
-topic "Detecting changes in vendor/"
-cd ${VENDOR_DIR}
-VENDOR_DIFF=${BP_CACHE_DIR}/.vendor-diff
-VENDOR_HASH=${BP_CACHE_DIR}/.vendor-hash
-VENDOR_HASH_NEW=${VENDOR_HASH}-new
-touch ${VENDOR_DIFF}
-touch ${VENDOR_HASH}
-touch ${VENDOR_HASH_NEW}
-openssl dgst -sha1 * > ${VENDOR_HASH_NEW}
-# `diff` signals differences with exit codes. Don't fail fast.
-set +e
-diff ${VENDOR_HASH} ${VENDOR_HASH_NEW} > ${VENDOR_DIFF}
-DIFF_STATUS=$?
-set -e
-mv -f ${VENDOR_HASH_NEW} ${VENDOR_HASH}
-
-if [ "$DIFF_STATUS" == 0 ] && [ -d "$PREFIX_CACHE_DIR" ]
-then
-  topic "Restoring from cache"
-  cp -R $PREFIX_CACHE_DIR/* $APP_PREFIX/
-
-elif [ "$DIFF_STATUS" == 0 ] || [ "$DIFF_STATUS" == 1 ]
-then
-  topic "Changes detected"
-  IFS=$'\n' 
-  for DIFF_LINE in $(cat "$VENDOR_DIFF"); do
-    echo "       $DIFF_LINE"
-  done
-  unset IFS
-
   # Clean-up previous cache
-  rm ${VENDOR_DIFF}
-  rm -rf ${VENDOR_CACHE_DIR}
+  #rm ${VENDOR_DIFF}
+  #rm -rf ${VENDOR_CACHE_DIR}
   # and cache the new source code
-  mv ${VENDOR_DIR} ${VENDOR_CACHE_DIR}
-  cd ${VENDOR_CACHE_DIR}
+  #mv ${VENDOR_DIR} ${VENDOR_CACHE_DIR}
+  #cd ${VENDOR_CACHE_DIR}
 
   topic "Building LuaJIT"
   tar -xf LuaJIT-${LUAJIT_VERSION}.tar.gz
@@ -167,10 +132,6 @@ then
 #  topic "Caching build"
 #  mkdir -p $PREFIX_CACHE_DIR
 #  cp -Rf $APP_PREFIX/* $PREFIX_CACHE_DIR/
-
-else
-  error "Error detecting cached build: diff exited ${DIFF_STATUS}"
-fi
 
 topic "Installing Lua rocks specified in .luarocks"
 cd ${BUILD_DIR}
