@@ -135,6 +135,9 @@ export | grep -E -e ' (PATH|LD_LIBRARY_PATH|LIBRARY_PATH|INCLUDE_PATH|CPATH|CPPP
 #  mkdir -p $PREFIX_CACHE_DIR
 #  cp -Rf $APP_PREFIX/* $PREFIX_CACHE_DIR/
 
+# Ensure buildpack directories are writeable (see https://github.com/heroku/heroku-buildpack-nodejs/issues/152)
+chmod -R ugo+w "${APP_PREFIX}"
+
 topic "Installing Lua rocks specified in .luarocks"
 cd ${BUILD_DIR}
 ${BP_DIR}/bin/install-luarocks
