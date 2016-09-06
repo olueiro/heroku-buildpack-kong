@@ -126,17 +126,10 @@ export | grep -E -e ' (PATH|LD_LIBRARY_PATH|LIBRARY_PATH|INCLUDE_PATH|CPATH|CPPP
   topic "Building LuaRocks"
   tar -xf luarocks-${LUAROCKS_VERSION}.tar.gz
   cd luarocks-${LUAROCKS_VERSION}
-  ./configure --prefix=${APP_PREFIX} --lua-suffix=jit --with-lua=${APP_PREFIX} --with-lua-include=${APP_PREFIX}/include/luajit-2.1
+  ./configure --prefix=${BUILD_DIR}/luajit --lua-suffix=jit --with-lua=${APP_PREFIX} --with-lua-include=${APP_PREFIX}/include/luajit-2.1
   make build
   make install
   cd ..  
-
-#  topic "Caching build"
-#  mkdir -p $PREFIX_CACHE_DIR
-#  cp -Rf $APP_PREFIX/* $PREFIX_CACHE_DIR/
-
-# Ensure buildpack directories are writeable (see https://github.com/heroku/heroku-buildpack-nodejs/issues/152)
-chmod -R ugo+w "${APP_PREFIX}"
 
 topic "Installing Lua rocks specified in .luarocks"
 cd ${BUILD_DIR}
