@@ -10,7 +10,7 @@ if [ -f "$LUAROCKS_SPEC" ]
 then
   for ROCK in $(cat "$LUAROCKS_SPEC"); do
     # eval expands the variable into multiple args
-    eval luarocks install $ROCK
+    eval /luajit/luarocks install $ROCK
   done
 fi
 
