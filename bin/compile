@@ -24,7 +24,7 @@ mkdir -p $APP_PREFIX
 # Set dependency versions.
 # These correspond to the archives in `vendor/`.
 # If upgrading any those archives, then update the corresponding version here.
-LUAJIT_VERSION=2.1.0-beta1
+LUAJIT_VERSION=2.1.0-beta2
 LUAROCKS_VERSION=2.3.0
 
 function error() {
