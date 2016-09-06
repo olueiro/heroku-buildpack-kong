@@ -126,7 +126,7 @@ export | grep -E -e ' (PATH|LD_LIBRARY_PATH|LIBRARY_PATH|INCLUDE_PATH|CPATH|CPPP
   topic "Building LuaRocks"
   tar -xf luarocks-${LUAROCKS_VERSION}.tar.gz
   cd luarocks-${LUAROCKS_VERSION}
-  ./configure --prefix=${BUILD_DIR}/luajit --lua-suffix=jit --with-lua=${APP_PREFIX} --with-lua-include=${APP_PREFIX}/include/luajit-2.1
+  ./configure --prefix=${APP_PREFIX} --lua-suffix=jit --with-lua=${APP_PREFIX} --with-lua-include=${APP_PREFIX}/include/luajit-2.1
   make build
   make install
   cd ..  
